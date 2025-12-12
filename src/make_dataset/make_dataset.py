@@ -7,8 +7,8 @@ import numpy as np
 current_script_path = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_script_path)))
 
-DATASET_PATH = os.path.join(project_root, "make_dataset/raw/genres_original")
-JSON_PATH = os.path.join(project_root,"make_dataset/processed/make_dataset.json")
+DATASET_PATH = os.path.join(project_root, "data/raw/genres_original")
+JSON_PATH = os.path.join(project_root,"data/processed/data.json")
 SAMPLE_RATE = 22050
 TRACK_DURATION = 30  # w sekundach
 SAMPLES_PER_TRACK = SAMPLE_RATE * TRACK_DURATION
