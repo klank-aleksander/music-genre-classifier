@@ -14,7 +14,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 current_script_path = os.path.abspath(__file__)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_script_path)))
 
-DATA_PATH = os.path.join(project_root, "data/processed/data.json")
+DATA_PATH = os.path.join(project_root, "make_dataset/processed/make_dataset.json")
 MODEL_SAVE_PATH = os.path.join(project_root, "models/music_genre_model.keras")
 
 TEST_SIZE = 0.25
