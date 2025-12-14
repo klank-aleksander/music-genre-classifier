@@ -6,9 +6,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 # --- FIX DLA MACA (Wymuszenie CPU) ---
-# Jeśli chcesz spróbować GPU, zakomentuj te dwie linie, ale zalecam zostawić
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 # --- KONFIGURACJA ---
 current_script_path = os.path.abspath(__file__)

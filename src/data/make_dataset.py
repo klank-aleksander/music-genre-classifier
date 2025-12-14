@@ -16,81 +16,64 @@ SAMPLES_PER_TRACK = SAMPLE_RATE * TRACK_DURATION
 
 def save_mfcc(dataset_path, json_path, n_mfcc=13, n_fft=2048, hop_length=512, num_segments=5):
     """
-    Ekstrahuje cechy MFCC z datasetu muzycznego i zapisuje je do pliku JSON.
-
-    :param dataset_path: Ścieżka do folderu z danymi (zawiera podfoldery gatunków)
-    :param json_path: Ścieżka wynikowa dla pliku JSON
-    :param n_mfcc: Liczba współczynników MFCC do ekstrakcji
-    :param n_fft: Długość okna FFT
-    :param hop_length: Przesunięcie okna
-    :param num_segments: Na ile części podzielić każdy utwór (zwiększa ilość danych treningowych)
+    Ekstrahuje cechy MFCC wymuszając ALFABETYCZNĄ kolejność gatunków.
     """
 
-    # Słownik do przechowywania danych
     data = {
-        "mapping": [],  # Np. ["blues", "classical", ...]
-        "mfcc": [],  # Cechy (inputy do modelu)
-        "labels": []  # Etykiety (targety, np. 0 dla bluesa)
+        "mapping": [],
+        "mfcc": [],
+        "labels": []
     }
 
     samples_per_segment = int(SAMPLES_PER_TRACK / num_segments)
     num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length)
 
-    print(f"Rozpoczynam przetwarzanie danych z: {dataset_path}")
+    # 1. Pobierz listę folderów i POSORTUJ JĄ ALFABETYCZNIE
+    # wymuszamy kolejność ["blues", "classical", ...]
+    genres = sorted(
+        [d for d in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, d)) and not d.startswith('.')])
 
-    # Iteracja przez wszystkie podfoldery (gatunki)
-    for i, (dirpath, dirnames, filenames) in enumerate(os.walk(dataset_path)):
+    print(f"Ustalona kolejność gatunków: {genres}")
+    data["mapping"] = genres
 
-        # Pomiń główny folder datasetu, interesują nas podfoldery
-        if dirpath is not dataset_path:
+    # 2. Iteruj po posortowanych gatunkach
+    for i, genre in enumerate(genres):
+        print(f"\nPrzetwarzanie: {genre} (Klasa: {i})")
 
-            # Zapisz nazwę gatunku (np. 'blues') wyciągniętą ze ścieżki
-            semantic_label = dirpath.split("/")[-1]  # Dla Windows może być "\\" zamiast "/"
-            if os.name == 'nt':  # Fix dla Windowsa
-                semantic_label = dirpath.split("\\")[-1]
+        genre_path = os.path.join(dataset_path, genre)
 
-            data["mapping"].append(semantic_label)
-            print(f"\nPrzetwarzanie: {semantic_label}")
+        # Iteruj po plikach wewnątrz gatunku
+        for f in os.listdir(genre_path):
+            file_path = os.path.join(genre_path, f)
 
-            # Iteracja przez pliki audio w gatunku
-            for f in filenames:
-                file_path = os.path.join(dirpath, f)
+            if not f.endswith('.wav'):
+                continue
 
-                # Ignoruj pliki, które nie są audio (np. .DS_Store)
-                if not f.endswith('.wav'):
-                    continue
+            try:
+                signal, sr = librosa.load(file_path, sr=SAMPLE_RATE)
 
-                try:
-                    # Ładowanie pliku audio
-                    signal, sr = librosa.load(file_path, sr=SAMPLE_RATE)
+                for s in range(num_segments):
+                    start_sample = samples_per_segment * s
+                    finish_sample = start_sample + samples_per_segment
 
-                    # Dzielenie utworu na segmenty (żeby mieć więcej danych treningowych)
-                    for s in range(num_segments):
-                        start_sample = samples_per_segment * s
-                        finish_sample = start_sample + samples_per_segment
+                    mfcc = librosa.feature.mfcc(y=signal[start_sample:finish_sample],
+                                                sr=sr,
+                                                n_fft=n_fft,
+                                                n_mfcc=n_mfcc,
+                                                hop_length=hop_length)
+                    mfcc = mfcc.T
 
-                        # Ekstrakcja MFCC
-                        mfcc = librosa.feature.mfcc(y=signal[start_sample:finish_sample],
-                                                    sr=sr,
-                                                    n_fft=n_fft,
-                                                    n_mfcc=n_mfcc,
-                                                    hop_length=hop_length)
-                        mfcc = mfcc.T
+                    if len(mfcc) == num_mfcc_vectors_per_segment:
+                        data["mfcc"].append(mfcc.tolist())
+                        data["labels"].append(i)  # Teraz 'i' odpowiada indeksowi na liście alfabetycznej
 
-                        # Zapisz tylko segmenty o oczekiwanej długości
-                        if len(mfcc) == num_mfcc_vectors_per_segment:
-                            data["mfcc"].append(mfcc.tolist())
-                            data["labels"].append(i - 1)  # i-1 bo os.walk na początku zwraca root
+            except Exception as e:
+                print(f"Błąd przy pliku {file_path}: {e}")
 
-                except Exception as e:
-                    print(f"Błąd przy pliku {file_path}: {e}")
-
-    # Zapis do pliku JSON
     with open(json_path, "w") as fp:
         json.dump(data, fp, indent=4)
 
     print(f"\nSukces! Dane zapisane w {json_path}")
-
 
 if __name__ == "__main__":
     import math
