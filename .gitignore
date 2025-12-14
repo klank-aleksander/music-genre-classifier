@@ -218,7 +218,8 @@ __marimo__/
 # --- MOJE DODATKI DO PROJEKTU ---
 
 # Ignoruj folder z danymi
-data/
+processed/
+raw/
 
 # Ignoruj folder z ustawieniami PyCharma
 .idea/
