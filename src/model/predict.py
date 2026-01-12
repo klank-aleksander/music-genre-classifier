@@ -19,7 +19,7 @@ GENRES = [
 class GenreClassifier:
     def __init__(self, model_path):
         """Ładuje model przy starcie aplikacji."""
-        self.model = tf.keras.models.load_model(model_path)
+        self.model = tf.keras.models.load_model(model_path, compile=False)
         print(f"Model załadowany z: {model_path}")
 
     def _preprocess_audio(self, file_path, n_mfcc=13, n_fft=2048, hop_length=512):
