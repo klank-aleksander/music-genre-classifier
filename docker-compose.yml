@@ -1,0 +1,7 @@
+services:
+  music-genre-classifier:
+    build: .
+    container_name: music_genre_classifier
+    ports:
+        - "8080:80"
+
