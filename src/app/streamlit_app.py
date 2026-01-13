@@ -28,11 +28,24 @@ def load_classifier(model_path):
 classifier = load_classifier(MODEL_PATH)
 
 # --- UI APLIKACJI ---
-uploaded_file = st.file_uploader("Wrzuć plik audio (.wav)", type="wav")
+uploaded_file = st.file_uploader("Wrzuć plik audio",
+                                 type=[
+                                     "wav", "mp3", "ogg", "flac", "aiff", "aif"
+                                 ])
 
 if classifier and uploaded_file is not None:
-    # Odtwarzacz audio
-    st.audio(uploaded_file, format='audio/wav')
+    ext = uploaded_file.name.split(".")[-1].lower()
+    mime_map = {
+        "wav": "audio/wav",
+        "mp3": "audio/mpeg",
+        "ogg": "audio/ogg",
+        "flac": "audio/flac",
+        "aiff": "audio/aiff",
+        "aif": "audio/aiff",
+    }
+    mime = mime_map.get(ext, "audio/wav")
+
+    st.audio(uploaded_file, format=mime)
 
     # Przycisk do uruchomienia analizy
     if st.button("Klasyfikuj gatunek"):
