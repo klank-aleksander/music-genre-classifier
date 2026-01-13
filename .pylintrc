@@ -1,15 +1,6 @@
-[MASTER]
-ignore=.venv, models
-
-[MESSAGES CONTROL]
-# E1101: Niezbędne dla TensorFlow/NumPy (biblioteki C++)
-# R0913: Too many arguments
-# R0914: Too many local variables
-# R0903: Too few public methods
-disable=E1101, R0913, R0914, R0903
-
-[FORMAT]
-max-line-length=120
+[TYPECHECK]
+#Pylint nie widzi dynamicznych składowych tych bibliotek.
+generated-members=numpy., torch., cv2., tensorflow., tf.*
 
 [BASIC]
 # Pozwala na krótkie nazwy zmiennych
