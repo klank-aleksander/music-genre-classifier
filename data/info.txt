@@ -1,3 +1,0 @@
-This data folder contains:
-- raw (catalog) - with datasets from kaggle
-- processed (catalog) - with data.json, that is processed datasetss

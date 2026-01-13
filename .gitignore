@@ -215,15 +215,12 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# --- MOJE DODATKI DO PROJEKTU ---
+data/processed/*
+data/raw/*
+!data/processed/info.txt
+!data/raw/info.txt
 
-# Ignoruj folder z danymi
-processed/
-raw/
-
-# Ignoruj folder z ustawieniami PyCharma
 .idea/
 
-# Ignoruj pliki tymczasowe przy przetwarzaniu audio
 *.wav
 *.mp3
