@@ -1,7 +1,12 @@
+"""
+Moduł odpowiedzialny za stworzenie datasetu.
+Wczytuje pliki audio z data/raw/genres-original, przetwarza je na json
+i wstawia do data/processed/data.json
+"""
 import os
 import json
+import math
 import librosa
-import numpy as np
 
 # --- KONFIGURACJA ---
 current_script_path = os.path.abspath(__file__)
@@ -70,13 +75,12 @@ def save_mfcc(dataset_path, json_path, n_mfcc=13, n_fft=2048, hop_length=512, nu
             except Exception as e:
                 print(f"Błąd przy pliku {file_path}: {e}")
 
-    with open(json_path, "w") as fp:
+    with open(json_path, "w", encoding='utf-8') as fp:
         json.dump(data, fp, indent=4)
 
     print(f"\nSukces! Dane zapisane w {json_path}")
 
 if __name__ == "__main__":
-    import math
 
     output_dir = os.path.dirname(JSON_PATH)
     os.makedirs(output_dir, exist_ok=True)

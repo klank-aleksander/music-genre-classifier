@@ -1,13 +1,14 @@
+"""
+Moduł odpowiedzialny za trenowanie sieci neuronowej.
+Wczytuje przetworzone dane, buduje model CNN i zapisuje wagi.
+"""
 import json
-import numpy as np
 import os
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import numpy as np
 
-# --- FIX DLA MACA (Wymuszenie CPU) ---
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 # --- KONFIGURACJA ---
 current_script_path = os.path.abspath(__file__)
@@ -19,12 +20,12 @@ MODEL_SAVE_PATH = os.path.join(project_root, "models/music_genre_model.keras")
 TEST_SIZE = 0.25
 VALIDATION_SIZE = 0.2
 BATCH_SIZE = 32
-EPOCHS = 30  # CNN uczy się szybciej, 30 epok powinno wystarczyć
+EPOCHS = 30
 
 
 def load_data(data_path):
-    """Wczytuje dane treningowe z pliku JSON."""
-    with open(data_path, "r") as fp:
+    """Wczytuje dane treningowe z pliku JSON"""
+    with open(data_path, "r", encoding='utf-8') as fp:
         data = json.load(fp)
 
     inputs = np.array(data["mfcc"])
@@ -35,15 +36,15 @@ def load_data(data_path):
 
 
 def prepare_datasets(test_size, validation_size):
-    """Wczytuje dane i przygotowuje je dla CNN (dodaje 3 wymiar)."""
+    """Wczytuje dane i przygotowuje je dla CNN (dodaje 3 wymiar)"""
 
     # 1. Wczytaj dane
     X, y = load_data(DATA_PATH)
 
-    # 2. Podział: Train / Test
+    # 2. Podział: train / test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
 
-    # 3. Podział: Train / Validation
+    # 3. Podział: train / validation
     X_train, X_validation, y_train, y_validation = train_test_split(X_train, y_train, test_size=validation_size)
 
     # --- KLUCZOWA POPRAWKA DLA CNN ---
@@ -57,7 +58,7 @@ def prepare_datasets(test_size, validation_size):
 
 
 def build_model(input_shape):
-    """Buduje architekturę sieci CNN."""
+    """Buduje architekturę sieci CNN"""
 
     model = tf.keras.Sequential()
 
@@ -98,7 +99,7 @@ def build_model(input_shape):
 
 def plot_history(history):
     """Rysuje wykresy uczenia."""
-    fig, axs = plt.subplots(2, figsize=(10, 8))
+    _, axs = plt.subplots(2, figsize=(10, 8))
 
     # Accuracy
     axs[0].plot(history.history["accuracy"], label="train accuracy")
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     input_shape = (X_train.shape[1], X_train.shape[2], X_train.shape[3])
     model = build_model(input_shape)
 
-    # Wyświetl architekturę (powinno być widać Output Shape z '1' na końcu)
+    # Wyświetl architekturę
     model.summary()
 
     # 3. Trenuj

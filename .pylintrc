@@ -1,17 +1,18 @@
 [MASTER]
-# Ignoruj folder z wirtualnym środowiskiem i danymi
-ignore=.venv, data, models
+# Ignoruje folder z wirtualnym środowiskiem i danymi
+ignore=.venv, models
 
 [MESSAGES CONTROL]
-# C0114: Missing module docstring (dodamy to ręcznie, ale na razie wyłączmy, by zobaczyć inne błędy)
-# C0103: Invalid name (pozwalamy na krótkie nazwy zmiennych)
-# E1101: No member (częsty błąd przy TensorFlow/OpenCV, które dynamicznie ładują moduły)
-disable=C0103, E1101, W0621, R0902, R0913, R0914
+# E1101: Niezbędne dla TensorFlow/NumPy (biblioteki C++)
+# R0913: Too many arguments
+# R0914: Too many local variables
+# R0903: Too few public methods
+disable=E1101, R0913, R0914, R0903
 
 [FORMAT]
-# Zwiększamy limit długości linii do 120 (standardowe 100 to za mało dla Python)
+# Zwiększa limit długości linii do 120
 max-line-length=120
 
 [BASIC]
-# Pozwól na krótkie nazwy zmiennych typowe dla Data Science
-good-names=i,j,k,ex,Run,_,fp,X,y,df,f,sr,id,n_fft,n_mfcc
+# Pozwala na krótkie nazwy zmiennych typowe dla Data Science
+good-names=i,j,k,ex,Run,_,fp,X,y,df,f,sr,id,n_fft,n_mfcc,X_test,X_train,X_validation

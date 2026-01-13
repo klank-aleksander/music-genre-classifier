@@ -1,3 +1,7 @@
+"""
+Moduł odpowiedzialny za logikę predykcji.
+Zawiera klasę GenreClassifier, która ładuje model i klasyfikuje pliki audio.
+"""
 import os
 import numpy as np
 import librosa
@@ -17,6 +21,10 @@ GENRES = [
 
 
 class GenreClassifier:
+    """
+    Wrapper na model tensorflow.
+    Zajmuje się ładowaniem modelu, preprocessingiem audio i wnioskowaniem.
+    """
     def __init__(self, model_path):
         """Ładuje model przy starcie aplikacji."""
         self.model = tf.keras.models.load_model(model_path, compile=False)
@@ -82,7 +90,7 @@ class GenreClassifier:
         if X is None or len(X) == 0:
             return None
 
-        # 2. Wykonaj predykcję dla KAŻDEGO kawałka
+        # 2. Wykonaj predykcję dla każdego kawałka
         # predictions to macierz (10 kawałków x 10 gatunków)
         predictions = self.model.predict(X, verbose=0)
 
