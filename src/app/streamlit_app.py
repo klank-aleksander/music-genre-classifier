@@ -1,8 +1,12 @@
-import streamlit as st
+"""
+Główny model aplikacji Streamlit.
+Odpowiada za interfejs użytkownika i komunikację z modelem.
+"""
 import os
 import sys
-import pandas as pd
 from tempfile import NamedTemporaryFile
+import streamlit as st
+import pandas as pd
 
 # Dodaj ścieżkę do folderu 'src', aby móc importować własne moduły
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -51,7 +55,7 @@ if classifier and uploaded_file is not None:
     if st.button("Klasyfikuj gatunek"):
         with st.spinner("Analizuję utwór... To może chwilę potrwać."):
             # Zapisz tymczasowo plik, aby `librosa` mógł go odczytać z ścieżki
-            with NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            with NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
                 tmp.write(uploaded_file.getvalue())
                 temp_path = tmp.name
 
