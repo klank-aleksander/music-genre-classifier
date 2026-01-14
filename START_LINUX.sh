@@ -40,9 +40,8 @@ docker compose up -d
 clear
 sleep 3
 mgc
-xdg-open "http://127.0.0.1:8080" >/dev/null 2>&1
 
-echo "Program dostępny jest pod adresem http://127.0.0.1:8080"
+echo "Otwórz przeglądarkę i przejdź pod adres: http://127.0.0.1:8080"
 
 while true; do
     sleep 60
