@@ -8,18 +8,22 @@
 ![Docker](https://img.shields.io/badge/docker-available-blue)
 
 ## Spis treści
-- [O projekcie](#o-projekcie)
-- [Struktura projektu](#struktura-projektu)
-- [Technologie](#technologie)
-- [Instalacja i Uruchomienie](#instalacja-i-uruchomienie)
-  - [Wymagania wstępne](#wymagania-wstępne)
-  - [Metoda 1: Docker Compose (Zalecana)](#metoda-1-docker-compose-zalecana)
-  - [Metoda 2: Czysty Docker](#metoda-2-czysty-docker)
-  - [Metoda 3: Uruchomienie lokalne (Python)](#metoda-3-uruchomienie-lokalne-python)
-- [Zbiór danych i Trenowanie](#zbiór-danych-i-trenowanie-opcjonalne)
+- [Music Genre Classifier 🎵](#music-genre-classifier-)
+  - [Spis treści](#spis-treści)
+  - [O projekcie](#o-projekcie)
+  - [Źródło danych](#źródło-danych)
+  - [Architektura systemu](#architektura-systemu)
+  - [Struktura projektu](#struktura-projektu)
+  - [Technologie](#technologie)
+  - [Instalacja i Uruchomienie](#instalacja-i-uruchomienie)
+    - [Wymagania wstępne](#wymagania-wstępne)
+    - [Metoda 1: Uruchomienie gotowej wersji przeglądarkowej (najprostrza)](#metoda-1-uruchomienie-gotowej-wersji-przeglądarkowej-najprostrza)
+    - [Metoda 2: Uruchomienie wersji lokalnej](#metoda-2-uruchomienie-wersji-lokalnej)
+    - [Metoda 3: Uruchomienie wersji lokalnej (Dla programistów)](#metoda-3-uruchomienie-wersji-lokalnej-dla-programistów)
+- [Trenowanie (Dla programistów)](#trenowanie-dla-programistów)
 - [Autorzy](#autorzy)
 
----
+
 
 ## O projekcie
 Celem projektu jest stworzenie kompletnego potoku (pipeline) MLOps, który przetwarza surowe pliki audio, trenuje model sieci neuronowej i udostępnia wyniki poprzez interfejs webowy.
@@ -74,57 +78,28 @@ music-genre-classifier/
 * **Web Framework:** Streamlit
 * **DevOps:** Docker, Docker Compose
 
----
 
 ## Instalacja i Uruchomienie
-
-Aplikację można uruchomić w kontenerze (zalecane) lub bezpośrednio w środowisku Python.
-
 ### Wymagania wstępne
-* Zainstalowany **Git**.
-* Zainstalowany **Docker** oraz **Docker Compose** (dla metod 1 i 2).
-* **Python 3.12** (tylko dla metody 3).
+  * Przeglądarka internetowa
+  
+      Dodatkowo dla metody 1:
 
-### Pobranie kodu
-Na początku sklonuj repozytorium na swój komputer:
 
-```bash
-git clone https://github.com/klank-aleksander/music-genre-classifier.git
-cd music-genre-classifier
-```
-### Metoda 1: Docker Compose (Zalecana)
-Najprostszy sposób uruchomienia. Automatycznie buduje obraz i mapuje porty.
+  * Na systemie **Windows** zainstalowany i uruchomiony **Docker Desktop**
+  * Na systemie **GNU/Linux** zainstalowany i uruchomiony **Docker** oraz **Docker Compose**
 
-1. Zbuduj i uruchom kontener:
-    ```bash
-       docker-compose up --build -d
-    ```
-2. Otwórz przeglądarkę pod adresem: http://localhost:8080
+### Metoda 1: Uruchomienie gotowej wersji przeglądarkowej (najprostrza)
+  Gotowa wersja aplikacji dostępna jest pod tym [linkiem](https://music-genre-classifier-2wa2xppjgrts8ehfggpyfe.streamlit.app/)
 
-3. Aby zatrzymać aplikację wpisz:
-    ```bash
-       docker-compose down
-    ```
+### Metoda 2: Uruchomienie wersji lokalnej
+  1. Pobierz i wypakuj archiwum z tego [linku](https://github.com/klank-aleksander/music-genre-classifier/archive/refs/heads/main.zip])
+  2. Przejdź do folderu zawierającego pliki programu i uruchom odpowiedni plik wykonywalny:
+      * **START_WINDOWS.vbs** dla systemu **Windows**
+      * **START_LINUX.sh** dla systemu **GNU/Linux**
+  3. Postępuj zgodnie z poleceniami wyświetlanymi w okienku.
 
-### Metoda 2: Czysty Docker
-
-Jeśli nie chcesz używać Compose, możesz zbudować obraz ręcznie.
-
-1. Zbuduj obraz:
-
-    ```bash
-    docker build -t music-classifier .
-    ```
-
-2. Uruchom kontener (mapując port hosta 8080 na port kontenera 80):
-
-    ```bash
-    docker run -p 8080:80 music-classifier
-    ```
-
-3. Aplikacja dostępna pod adresem http://localhost:8080.
-
-### Metoda 3: Uruchomienie lokalne (Python)
+### Metoda 3: Uruchomienie wersji lokalnej (Dla programistów)
 
 Do prac deweloperskich bez użycia wirtualizacji.
 
@@ -158,8 +133,7 @@ Do prac deweloperskich bez użycia wirtualizacji.
 5. Aplikacja otworzy się zazwyczaj pod adresem http://localhost:8501.
 
 
-
-# Zbiór danych i Trenowanie (Opcjonalne)
+# Trenowanie (Dla programistów)
 
 Projekt zawiera już wytrenowany model w katalogu models/. Jeśli jednak chcesz przeprowadzić trening od zera:
 1. Pobierz [Dataset](https://www.kaggle.com/datasets/andradaolteanu/gtzan-dataset-music-genre-classification) z serwisu Kaggle.
