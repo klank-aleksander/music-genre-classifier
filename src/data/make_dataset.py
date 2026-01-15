@@ -33,21 +33,20 @@ def save_mfcc(dataset_path, json_path, n_mfcc=13, n_fft=2048, hop_length=512, nu
     samples_per_segment = int(SAMPLES_PER_TRACK / num_segments)
     num_mfcc_vectors_per_segment = math.ceil(samples_per_segment / hop_length)
 
-    # 1. Pobierz listę folderów i POSORTUJ JĄ ALFABETYCZNIE
-    # wymuszamy kolejność ["blues", "classical", ...]
+    #Pobieranie listy folderów i sortowanie alfabetyczne
     genres = sorted(
         [d for d in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, d)) and not d.startswith('.')])
 
     print(f"Ustalona kolejność gatunków: {genres}")
     data["mapping"] = genres
 
-    # 2. Iteruj po posortowanych gatunkach
+    #Iteracja po posortowanych gatunkach
     for i, genre in enumerate(genres):
         print(f"\nPrzetwarzanie: {genre} (Klasa: {i})")
 
         genre_path = os.path.join(dataset_path, genre)
 
-        # Iteruj po plikach wewnątrz gatunku
+        #Iteracja po plikach wewnątrz gatunku
         for f in os.listdir(genre_path):
             file_path = os.path.join(genre_path, f)
 
@@ -70,7 +69,7 @@ def save_mfcc(dataset_path, json_path, n_mfcc=13, n_fft=2048, hop_length=512, nu
 
                     if len(mfcc) == num_mfcc_vectors_per_segment:
                         data["mfcc"].append(mfcc.tolist())
-                        data["labels"].append(i)  # Teraz 'i' odpowiada indeksowi na liście alfabetycznej
+                        data["labels"].append(i)  #i odpowiada indeksowi na liście alfabetycznej
 
             except Exception as e:
                 print(f"Błąd przy pliku {file_path}: {e}")

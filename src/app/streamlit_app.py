@@ -8,17 +8,16 @@ from tempfile import NamedTemporaryFile
 import streamlit as st
 import pandas as pd
 
-# Dodaj ścieżkę do folderu 'src', aby móc importować własne moduły
+# Dodaj ścieżkę do folderu src, aby móc importować własne moduły
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from model.predict import GenreClassifier, GENRES
 
 st.title("Music Genre Classifier")
 
 # --- KONFIGURACJA ---
-# Ustal ścieżkę do modelu względem TEGO pliku
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "../../models/music_genre_model.keras")
 
-# --- ŁADOWANIE MODELU (z cache) ---
+# --- ŁADOWANIE MODELU ---
 @st.cache_resource
 def load_classifier(model_path):
     """Ładuje model i cachuje go, aby nie ładować go przy każdej interakcji."""
@@ -54,7 +53,7 @@ if classifier and uploaded_file is not None:
     # Przycisk do uruchomienia analizy
     if st.button("Klasyfikuj gatunek"):
         with st.spinner("Analizuję utwór... To może chwilę potrwać."):
-            # Zapisz tymczasowo plik, aby `librosa` mógł go odczytać z ścieżki
+            # Zapisz tymczasowo plik, aby librosa mógł go odczytać z ścieżki
             with NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
                 tmp.write(uploaded_file.getvalue())
                 temp_path = tmp.name
@@ -81,6 +80,5 @@ if classifier and uploaded_file is not None:
                     st.error("Nie udało się przetworzyć pliku audio.")
 
             finally:
-                # Posprzątaj po sobie
                 if os.path.exists(temp_path):
                     os.remove(temp_path)

@@ -13,7 +13,7 @@ SAMPLE_RATE = 22050
 TRAINING_DURATION = 30  # Na takich plikach trenowaliśmy
 SEGMENT_DURATION = 3    # Długość jednego wycinka w sekundach (1/10 z 30s)
 
-# Obliczamy ile próbek ma jeden segment (kluczowe dla modelu)
+# Obliczamy ile próbek ma jeden segment
 SAMPLES_PER_SEGMENT = int(SAMPLE_RATE * SEGMENT_DURATION)
 EXPECTED_MFCC_VECTORS = 130  # Tyle wektorów czasowych oczekuje model (dla 3s)
 
@@ -43,7 +43,7 @@ class GenreClassifier:
         """
         # pylint: disable=broad-exception-caught
         try:
-            # 1. Wczytaj CAŁY plik audio (bez limitu duration)
+            # Wczytaj plik audio
             signal, sr = librosa.load(file_path, sr=SAMPLE_RATE)
 
             # Oblicz ile pełnych 3-sekundowych segmentów mieści się w utworze
@@ -55,7 +55,7 @@ class GenreClassifier:
 
             processed_segments = []
 
-            # 2. Pętla po wszystkich możliwych segmentach
+            # Pętla po wszystkich segmentach
             for s in range(num_segments):
                 start_sample = SAMPLES_PER_SEGMENT * s
                 finish_sample = start_sample + SAMPLES_PER_SEGMENT
@@ -67,19 +67,16 @@ class GenreClassifier:
                 mfcc = librosa.feature.mfcc(y=chunk, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
                 mfcc = mfcc.T  # Transpozycja (czas, cechy)
 
-                # Sprawdź czy wymiar się zgadza (musi być idealnie 130 ramek)
+                # Sprawdź czy wymiar jest równy 130
                 if len(mfcc) == EXPECTED_MFCC_VECTORS:
                     processed_segments.append(mfcc.tolist())
                 else:
-                    # Czasem przez zaokrąglenia wyjdzie 129 lub 131 - takie odrzucamy dla bezpieczeństwa
                     continue
 
-            # Jeśli po filtracji nic nie zostało
             if not processed_segments:
                 return None
 
-            # 3. Zamień na numpy array i dodaj wymiar kanału (dla CNN)
-            # Wynik: (ilość_kawałków, 130, 13, 1)
+            # numpy array i dodanie wymiaru kanału (dla CNN)
             X = np.array(processed_segments)
             X = X[..., np.newaxis]
 
@@ -92,20 +89,19 @@ class GenreClassifier:
     def predict(self, file_path):
         """Główna funkcja: Audio -> Klasa -> Wynik"""
 
-        # 1. Przygotuj dane (potnij CAŁY utwór na kawałki)
         X = self._preprocess_audio(file_path)
 
         if X is None or len(X) == 0:
             return None
 
-        # 2. Wykonaj predykcję dla KAŻDEGO kawałka
-        # predictions to macierz (N kawałków x 10 gatunków)
+        # Wykonaj predykcję dla każdego kawałka
+        # predictions = macierz (N kawałków x 10 gatunków)
         predictions = self.model.predict(X, verbose=0)
 
-        # 3. GŁOSOWANIE (Średnia z prawdopodobieństw wszystkich kawałków)
+        # Średnia z prawdopodobieństw wszystkich kawałków
         avg_prediction = np.mean(predictions, axis=0)
 
-        # 4. Znajdź zwycięzcę
+        # Znajdź zwycięzcę
         predicted_index = np.argmax(avg_prediction)
         predicted_genre = GENRES[predicted_index]
         confidence = avg_prediction[predicted_index]
