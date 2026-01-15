@@ -83,11 +83,13 @@ music-genre-classifier/
 ### Wymagania wstępne
   * Przeglądarka internetowa
   
-      Dodatkowo dla metody 1:
-
-
+  Dodatkowo dla metody 2:
   * Na systemie **Windows** zainstalowany i uruchomiony **Docker Desktop**
   * Na systemie **GNU/Linux** zainstalowany i uruchomiony **Docker** oraz **Docker Compose**
+
+  Dodatkowo do metody 3:
+  * Python w wersji 3.12
+
 
 ### Metoda 1: Uruchomienie gotowej wersji przeglądarkowej (najprostrza)
   Gotowa wersja aplikacji dostępna jest pod tym [linkiem](https://music-genre-classifier-2wa2xppjgrts8ehfggpyfe.streamlit.app/)
