@@ -18,7 +18,7 @@ DATA_PATH = os.path.join(project_root, "data/processed/data.json")
 MODEL_SAVE_PATH = os.path.join(project_root, "models/music_genre_model.keras")
 FIGURES_PATH = os.path.join(project_root, "reports/figures")
 
-TEST_SIZE = 0.25
+TEST_SIZE = 0.2
 VALIDATION_SIZE = 0.2
 BATCH_SIZE = 32
 EPOCHS = 30
@@ -38,16 +38,22 @@ def load_data(data_path):
 
 
 def prepare_datasets(test_size, validation_size):
-    """Wczytuje dane i przygotowuje je dla CNN."""
+    """Wczytuje dane i przygotowuje je dla CNN (ze stratyfikacją)."""
 
     # 1. Wczytaj dane
     X, y, mapping = load_data(DATA_PATH)
 
     # 2. Podział: train / test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    # Dodano stratify=y -> gwarantuje równą liczbę gatunków w obu zbiorach
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, stratify=y
+    )
 
     # 3. Podział: train / validation
-    X_train, X_validation, y_train, y_validation = train_test_split(X_train, y_train, test_size=validation_size)
+    # Tutaj też stratify=y_train
+    X_train, X_validation, y_train, y_validation = train_test_split(
+        X_train, y_train, test_size=validation_size, stratify=y_train
+    )
 
     # Dodajemy wymiar kanału (dla CNN)
     X_train = X_train[..., np.newaxis]
