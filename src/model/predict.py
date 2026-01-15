@@ -1,17 +1,21 @@
 """
-Moduł odpowiedzialny za logikę predykcji.
-Zawiera klasę GenreClassifier, która ładuje model i klasyfikuje pliki audio.
+Moduł obsługujący logikę predykcji.
+Zawiera klasę GenreClassifier, która ładuje model i klasyfikuje pliki audio (całe utwory).
 """
 import os
+import math
 import numpy as np
 import librosa
-import tensorflow as tf
+from tensorflow.keras.models import load_model
 
 # --- KONFIGURACJA ---
 SAMPLE_RATE = 22050
-DURATION = 30  # Tyle sekund analizujemy
-SAMPLES_PER_TRACK = SAMPLE_RATE * DURATION
-NUM_SEGMENTS = 10  # Na tyle części dzieliliśmy utwór w treningu
+TRAINING_DURATION = 30  # Na takich plikach trenowaliśmy
+SEGMENT_DURATION = 3    # Długość jednego wycinka w sekundach (1/10 z 30s)
+
+# Obliczamy ile próbek ma jeden segment (kluczowe dla modelu)
+SAMPLES_PER_SEGMENT = int(SAMPLE_RATE * SEGMENT_DURATION)
+EXPECTED_MFCC_VECTORS = 130  # Tyle wektorów czasowych oczekuje model (dla 3s)
 
 # Lista gatunków w kolejności alfabetycznej
 GENRES = [
@@ -22,55 +26,59 @@ GENRES = [
 
 class GenreClassifier:
     """
-    Wrapper na model tensorflow.
+    Wrapper na model TensorFlow.
     Zajmuje się ładowaniem modelu, preprocessingiem audio i wnioskowaniem.
     """
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, model_path):
         """Ładuje model przy starcie aplikacji."""
-        self.model = tf.keras.models.load_model(model_path, compile=False)
+        self.model = load_model(model_path, compile=False)
         print(f"Model załadowany z: {model_path}")
 
     def _preprocess_audio(self, file_path, n_mfcc=13, n_fft=2048, hop_length=512):
         """
-        Przerabia plik audio na zestaw macierzy MFCC gotowych dla modelu CNN.
-        Zwraca tablicę o kształcie: (liczba_segmentów, 130, 13, 1)
+        Przerabia CAŁY plik audio na zestaw macierzy MFCC.
+        Dzieli utwór na segmenty po 3 sekundy.
         """
+        # pylint: disable=broad-exception-caught
         try:
-            # 1. Wczytaj audio
+            # 1. Wczytaj CAŁY plik audio (bez limitu duration)
             signal, sr = librosa.load(file_path, sr=SAMPLE_RATE)
 
-            # Jeśli plik jest krótszy niż 30s, zapętl go lub zostaw
-            # Dla uproszczenia bierzemy po prostu tyle ile jest, ale ucinamy do 30s max
-            if len(signal) > SAMPLES_PER_TRACK:
-                signal = signal[:SAMPLES_PER_TRACK]
+            # Oblicz ile pełnych 3-sekundowych segmentów mieści się w utworze
+            num_segments = len(signal) // SAMPLES_PER_SEGMENT
 
-            # 2. Parametry segmentacji
-            samples_per_segment = int(SAMPLES_PER_TRACK / NUM_SEGMENTS)
-            num_mfcc_vectors_per_segment = 130  # Oczekiwana długość czasowa przez model
+            if num_segments == 0:
+                print("Plik jest za krótki (mniej niż 3 sekundy).")
+                return None
 
             processed_segments = []
 
-            # 3. Pętla po segmentach (tnij utwór na kawałki po 3 sekundy)
-            for s in range(NUM_SEGMENTS):
-                start_sample = samples_per_segment * s
-                finish_sample = start_sample + samples_per_segment
+            # 2. Pętla po wszystkich możliwych segmentach
+            for s in range(num_segments):
+                start_sample = SAMPLES_PER_SEGMENT * s
+                finish_sample = start_sample + SAMPLES_PER_SEGMENT
 
                 # Wyciągnij kawałek sygnału
                 chunk = signal[start_sample:finish_sample]
-
-                # Zabezpieczenie dla bardzo krótkich plików
-                if len(chunk) < samples_per_segment:
-                    continue
 
                 # Zrób MFCC
                 mfcc = librosa.feature.mfcc(y=chunk, sr=sr, n_mfcc=n_mfcc, n_fft=n_fft, hop_length=hop_length)
                 mfcc = mfcc.T  # Transpozycja (czas, cechy)
 
-                # Sprawdź czy wymiar się zgadza (czasem jest +/- 1 ramka różnicy przez zaokrąglenia)
-                if len(mfcc) == num_mfcc_vectors_per_segment:
+                # Sprawdź czy wymiar się zgadza (musi być idealnie 130 ramek)
+                if len(mfcc) == EXPECTED_MFCC_VECTORS:
                     processed_segments.append(mfcc.tolist())
+                else:
+                    # Czasem przez zaokrąglenia wyjdzie 129 lub 131 - takie odrzucamy dla bezpieczeństwa
+                    continue
 
-            # 4. Zamień na numpy array i dodaj wymiar kanału (dla CNN)
+            # Jeśli po filtracji nic nie zostało
+            if not processed_segments:
+                return None
+
+            # 3. Zamień na numpy array i dodaj wymiar kanału (dla CNN)
             # Wynik: (ilość_kawałków, 130, 13, 1)
             X = np.array(processed_segments)
             X = X[..., np.newaxis]
@@ -84,18 +92,17 @@ class GenreClassifier:
     def predict(self, file_path):
         """Główna funkcja: Audio -> Klasa -> Wynik"""
 
-        # 1. Przygotuj dane (potnij na kawałki)
+        # 1. Przygotuj dane (potnij CAŁY utwór na kawałki)
         X = self._preprocess_audio(file_path)
 
         if X is None or len(X) == 0:
             return None
 
-        # 2. Wykonaj predykcję dla każdego kawałka
-        # predictions to macierz (10 kawałków x 10 gatunków)
+        # 2. Wykonaj predykcję dla KAŻDEGO kawałka
+        # predictions to macierz (N kawałków x 10 gatunków)
         predictions = self.model.predict(X, verbose=0)
 
         # 3. GŁOSOWANIE (Średnia z prawdopodobieństw wszystkich kawałków)
-        # Np. Kawałek 1 mówi: 90% Rock. Kawałek 2 mówi: 80% Rock. Średnia = Rock.
         avg_prediction = np.mean(predictions, axis=0)
 
         # 4. Znajdź zwycięzcę
@@ -103,7 +110,6 @@ class GenreClassifier:
         predicted_genre = GENRES[predicted_index]
         confidence = avg_prediction[predicted_index]
 
-        # 5. Zwróć wynik i pełny rozkład (do wykresu)
         return {
             "genre": predicted_genre,
             "confidence": float(confidence),
@@ -111,26 +117,22 @@ class GenreClassifier:
         }
 
 
-# --- TEST LOKALNY (Tylko gdy uruchamiasz ten plik bezpośrednio) ---
+# --- TEST LOKALNY ---
 if __name__ == "__main__":
-    # Ustal ścieżki
     current_path = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(current_path))
     model_path = os.path.join(project_root, "models/music_genre_model.keras")
 
-    # Przetestuj na jakimś pliku z datasetu (np. Metal)
+    # Przykładowy plik
     test_file = os.path.join(project_root, "data/raw/genres_original/metal/metal.00004.wav")
 
-    # Inicjalizacja
     classifier = GenreClassifier(model_path)
 
     if os.path.exists(test_file):
         print(f"\nAnalizuję plik: {test_file}...")
         result = classifier.predict(test_file)
 
-        print("\n--- WYNIKI ---")
-        print(f"Gatunek: {result['genre'].upper()}")
-        print(f"Pewność: {result['confidence'] * 100:.2f}%")
-        print("Rozkład:", result['probabilities'])
-    else:
-        print("Nie znaleziono pliku testowego. Zmień ścieżkę w bloku 'if __name__'.")
+        if result:
+            print("\n--- WYNIKI ---")
+            print(f"Gatunek: {result['genre'].upper()}")
+            print(f"Pewność: {result['confidence'] * 100:.2f}%")
